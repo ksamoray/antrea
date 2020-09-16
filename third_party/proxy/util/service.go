@@ -53,3 +53,9 @@ func NeedsHealthCheck(service *v1.Service) bool {
 	}
 	return RequestsOnlyLocalTraffic(service)
 }
+
+// IsServiceIPSet aims to check if the service's ClusterIP is set or not
+// the objective is not to perform validation here
+func IsServiceIPSet(service *v1.Service) bool {
+	return service.Spec.ClusterIP != v1.ClusterIPNone && service.Spec.ClusterIP != ""
+}

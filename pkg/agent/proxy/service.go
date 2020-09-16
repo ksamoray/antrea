@@ -33,7 +33,7 @@ type serviceChangesTracker struct {
 
 func newServiceChangesTracker(recorder record.EventRecorder) *serviceChangesTracker {
 	enableIPV6 := false
-	return &serviceChangesTracker{tracker: k8sproxy.NewServiceChangeTracker(types.NewServiceInfo, &enableIPV6, recorder)}
+	return &serviceChangesTracker{tracker: k8sproxy.NewServiceChangeTracker(types.NewServiceInfo, &enableIPV6, recorder, nil)}
 }
 
 func (sh *serviceChangesTracker) OnServiceSynced() {
