@@ -16,13 +16,24 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"net"
+	"strings"
 
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
+	netutils "k8s.io/utils/net"
 
 	"github.com/vmware-tanzu/antrea/pkg/apis"
 	"github.com/vmware-tanzu/antrea/pkg/features"
+)
+
+const (
+	defaultClusterCIDRs         = "172.18.0.0/16"
+	defaultServiceCIDR          = "172.19.0.0/16"
+	defaultNodeCIDRMaskSizeIPv4 = 24
+	defaultNodeCIDRMaskSizeIPv6 = 64
 )
 
 type Options struct {
@@ -62,6 +73,20 @@ func (o *Options) validate(args []string) error {
 	if len(args) != 0 {
 		return errors.New("no positional arguments are supported")
 	}
+
+	// Validate ServiceCIDR
+	_, _, err := net.ParseCIDR(o.config.ServiceCIDR)
+	if err != nil {
+		return fmt.Errorf("service CIDR %s is invalid", o.config.ServiceCIDR)
+	}
+
+	// Validate ClusterCIDRs
+	cidrSplit := strings.Split(strings.TrimSpace(o.config.ClusterCIDRs), ",")
+	_, err = netutils.ParseCIDRs(cidrSplit)
+	if err != nil {
+		return fmt.Errorf("cluster CIDRs %s is invalid", o.config.ClusterCIDRs)
+	}
+
 	return nil
 }
 
@@ -77,5 +102,21 @@ func (o *Options) loadConfigFromFile() error {
 func (o *Options) setDefaults() {
 	if o.config.APIPort == 0 {
 		o.config.APIPort = apis.AntreaControllerAPIPort
+	}
+
+	if o.config.ClusterCIDRs == "" {
+		o.config.ClusterCIDRs = defaultClusterCIDRs
+	}
+
+	if o.config.ServiceCIDR == "" {
+		o.config.ServiceCIDR = defaultServiceCIDR
+	}
+
+	if o.config.NodeCIDRMaskSizeIPv4 == 0 {
+		o.config.NodeCIDRMaskSizeIPv4 = defaultNodeCIDRMaskSizeIPv4
+	}
+
+	if o.config.NodeCIDRMaskSizeIPv6 == 0 {
+		o.config.NodeCIDRMaskSizeIPv6 = defaultNodeCIDRMaskSizeIPv6
 	}
 }

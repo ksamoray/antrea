@@ -972,13 +972,21 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - nodes
   - pods
   - namespaces
   verbs:
   - get
   - watch
   - list
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - watch
+  - list
+  - patch
 - apiGroups:
   - networking.k8s.io
   resources:
@@ -1332,12 +1340,31 @@ data:
     # And the Secret must be mounted to directory "/var/run/antrea/antrea-controller-tls" of the
     # antrea-controller container.
     #selfSignedCert: true
+
+    # Enable the integrated node IPAM controller within the Antrea controller.
+    #enableNodeIPAMController: false
+
+    # Cluster IP CIDR ranges for Pods. Required when enableNodeIPAMController is enabled, and should be set with
+    # the value value specified by --cluster-cidr for kube-apiserver.
+    #clusterCIDRs: 172.18.0.0/16
+
+    # Service IP CIDR range for Services. Required when enableNodeIPAMController is enabled, and should be set with
+    # the value value specified by --service-cluster-ip-range for kube-apiserver.
+    #serviceCIDR: 172.19.0.0/16
+
+    # Node CIDR mask size for IPv4. Required when enableNodeIPAMController is enabled, and should be set with
+    # the value value specified by --node-cidr-mask-size-ipv4 for kube-controller-manager.
+    #nodeCIDRMaskSizeIPv4: 24
+
+    # Node CIDR mask size for IPv6. Required when enableNodeIPAMController is enabled, and should be set with
+    # the value value specified by --node-cidr-mask-size-ipv6 for kube-controller-manager.
+    #nodeCIDRMaskSizeIPv6: 64
 kind: ConfigMap
 metadata:
   annotations: {}
   labels:
     app: antrea
-  name: antrea-config-bdc66g4872
+  name: antrea-config-4f4tcfb8hd
   namespace: kube-system
 ---
 apiVersion: v1
@@ -1457,7 +1484,7 @@ spec:
         key: node-role.kubernetes.io/master
       volumes:
       - configMap:
-          name: antrea-config-bdc66g4872
+          name: antrea-config-4f4tcfb8hd
         name: antrea-config
       - name: antrea-controller-tls
         secret:
@@ -1757,7 +1784,7 @@ spec:
         operator: Exists
       volumes:
       - configMap:
-          name: antrea-config-bdc66g4872
+          name: antrea-config-4f4tcfb8hd
         name: antrea-config
       - hostPath:
           path: /etc/cni/net.d

@@ -13,13 +13,21 @@ rules:
   - apiGroups:
       - ""
     resources:
-      - nodes
       - pods
       - namespaces
     verbs:
       - get
       - watch
       - list
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - get
+      - watch
+      - list
+      - patch
   - apiGroups:
       - networking.k8s.io
     resources:

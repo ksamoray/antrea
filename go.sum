@@ -638,6 +638,8 @@ k8s.io/apimachinery v0.18.4/go.mod h1:OaXp26zu/5J7p0f92ASynJa1pZo06YlV9fG7BoWbCk
 k8s.io/apiserver v0.18.4 h1:pn1jSQkfboPSirZopkVpEdLW4FcQLnYMaIY8LFxxj30=
 k8s.io/apiserver v0.18.4/go.mod h1:q+zoFct5ABNnYkGIaGQ3bcbUNdmPyOCoEBcg51LChY8=
 k8s.io/cli-runtime v0.18.4/go.mod h1:9/hS/Cuf7NVzWR5F/5tyS6xsnclxoPLVtwhnkJG1Y4g=
+k8s.io/cloud-provider v0.18.4 h1:FJaawGvrvQQSQy4sVahhP+qEoWwBmM5Xs2tiFQiaUO8=
+k8s.io/cloud-provider v0.18.4/go.mod h1:JdI6cuSFPSPANEciv0v5qfwztkeyFCVc1S3krLYrw0E=
 k8s.io/code-generator v0.18.4/go.mod h1:TgNEVx9hCyPGpdtCWA34olQYLkh3ok9ar7XfSsr8b6c=
 k8s.io/component-base v0.18.4 h1:Kr53Fp1iCGNsl9Uv4VcRvLy7YyIqi9oaJOQ7SXtKI98=
 k8s.io/component-base v0.18.4/go.mod h1:7jr/Ef5PGmKwQhyAz/pjByxJbC58mhKAhiaDu0vXfPk=

@@ -39,4 +39,23 @@ type ControllerConfig struct {
 	// antrea-controller container.
 	// Defaults to true.
 	SelfSignedCert bool `yaml:"selfSignedCert,omitempty"`
+	// Enable the integrated node IPAM controller within the Antrea controller.
+	// Defaults to false.
+	EnableNodeIPAMController bool `yaml:"enableNodeIPAMController,omitempty"`
+	// Cluster IP CIDR ranges for Pods. Required when enableNodeIPAMController is enabled, and should be set with
+	// the value value specified by --cluster-cidr for kube-apiserver.
+	// Default is 172.18.0.0/16
+	ClusterCIDRs string `yaml:"clusterCIDRs,omitempty"`
+	// Service IP CIDR range for Services. Required when enableNodeIPAMController is enabled, and should be set with
+	// the value value specified by --service-cluster-ip-range for kube-apiserver.
+	// Default is 172.19.0.0/16
+	ServiceCIDR string `yaml:"serviceCIDR,omitempty"`
+	// Node CIDR mask size for IPv4. Required when enableNodeIPAMController is enabled, and should be set with
+	// the value value specified by --node-cidr-mask-size-ipv4 for kube-controller-manager.
+	// Default is 24
+	NodeCIDRMaskSizeIPv4 int `yaml:"nodeCIDRMaskSizeIPv4,omitempty"`
+	// Node CIDR mask size for IPv6. Required when enableNodeIPAMController is enabled, and should be set with
+	// the value value specified by --node-cidr-mask-size-ipv6 for kube-controller-manager.
+	// Default is 64
+	NodeCIDRMaskSizeIPv6 int `yaml:"nodeCIDRMaskSizeIPv6,omitempty"`
 }

@@ -20,6 +20,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	genericopenapi "k8s.io/apiserver/pkg/endpoints/openapi"
@@ -29,6 +30,7 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
 	aggregatorclientset "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
+	netutils "k8s.io/utils/net"
 
 	"github.com/vmware-tanzu/antrea/pkg/apiserver"
 	"github.com/vmware-tanzu/antrea/pkg/apiserver/certificate"
@@ -47,6 +49,8 @@ import (
 	"github.com/vmware-tanzu/antrea/pkg/monitor"
 	"github.com/vmware-tanzu/antrea/pkg/signals"
 	"github.com/vmware-tanzu/antrea/pkg/version"
+	"github.com/vmware-tanzu/antrea/third_party/nodeipam"
+	"github.com/vmware-tanzu/antrea/third_party/nodeipam/ipam"
 )
 
 const (
@@ -198,10 +202,65 @@ func run(o *Options) error {
 	if features.DefaultFeatureGate.Enabled(features.AntreaPolicy) {
 		go networkPolicyStatusController.Run(stopCh)
 	}
+	//TODO: replace below with parameters, wrap func call with if on enable flag
+	if o.config.EnableNodeIPAMController {
+		cidrSplit := strings.Split(strings.TrimSpace(o.config.ClusterCIDRs), ",")
+		clusterCIDRs, _ := netutils.ParseCIDRs(cidrSplit)
+		_, serviceCIDR, _ := net.ParseCIDR(o.config.ServiceCIDR)
+		err = startNodeIPAMController(
+			client,
+			informerFactory,
+			clusterCIDRs,
+			serviceCIDR,
+			o.config.NodeCIDRMaskSizeIPv4,
+			o.config.NodeCIDRMaskSizeIPv6,
+			stopCh)
+		if err != nil {
+			return fmt.Errorf("failed to initialize node IPAM controller: %v", err)
+		}
+	}
 
 	<-stopCh
 	klog.Info("Stopping Antrea controller")
 	return nil
+}
+
+func getNodeCIDRMaskSizes(clusterCIDRs []*net.IPNet, maskSizeIPv4, maskSizeIPv6 int) []int {
+	nodeMaskCIDRs := make([]int, len(clusterCIDRs))
+
+	for idx, clusterCIDR := range clusterCIDRs {
+		if netutils.IsIPv6CIDR(clusterCIDR) {
+			nodeMaskCIDRs[idx] = maskSizeIPv6
+		} else {
+			nodeMaskCIDRs[idx] = maskSizeIPv4
+		}
+	}
+	return nodeMaskCIDRs
+}
+
+func startNodeIPAMController(client clientset.Interface,
+	informerFactory informers.SharedInformerFactory,
+	clusterCIDRs []*net.IPNet,
+	serviceCIDR *net.IPNet,
+	nodeCIDRMaskSizeIPv4 int,
+	nodeCIDRMaskSizeIPv6 int,
+	stopCh <-chan struct{}) error {
+
+	nodeCIDRMaskSizes := getNodeCIDRMaskSizes(clusterCIDRs, nodeCIDRMaskSizeIPv4, nodeCIDRMaskSizeIPv6)
+	nodeIPAMController, err := nodeipam.NewNodeIpamController(
+		informerFactory.Core().V1().Nodes(),
+		nil,
+		client,
+		clusterCIDRs,
+		serviceCIDR,
+		nil,
+		nodeCIDRMaskSizes,
+		ipam.RangeAllocatorType,
+	)
+	if err == nil {
+		go nodeIPAMController.Run(stopCh)
+	}
+	return err
 }
 
 func createAPIServerConfig(kubeconfig string,
