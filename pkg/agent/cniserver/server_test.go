@@ -85,20 +85,20 @@ func TestLoadNetConfig(t *testing.T) {
 	assert.Equal(networkCfg.Name, netCfg.Name)
 	assert.Equal(networkCfg.IPAM.Type, netCfg.IPAM.Type)
 	assert.Equal(
-		netCfg.IPAM.Ranges[0][0].Subnet, testNodeConfig.PodIPv4CIDR.String(),
-		"Network configuration (PodIPv4CIDR) was not updated",
+		netCfg.IPAM.Ranges[0][0].Subnet, testNodeConfig.PodIPv4CIDRs[0].String(),
+		"Network configuration (PodIPv4CIDRs) was not updated",
 	)
 	assert.Equal(
-		netCfg.IPAM.Ranges[0][0].Gateway, testNodeConfig.GatewayConfig.IPv4.String(),
-		"Network configuration (Gateway IP) was not updated",
+		netCfg.IPAM.Ranges[0][0].Gateway, testNodeConfig.GatewayConfig.IPv4s[0].String(),
+		"Network configuration (Gateway IPs) was not updated",
 	)
 	assert.Equal(
-		netCfg.IPAM.Ranges[1][0].Subnet, testNodeConfig.PodIPv6CIDR.String(),
-		"Network configuration (PodIPv6CIDR) was not updated",
+		netCfg.IPAM.Ranges[1][0].Subnet, testNodeConfig.PodIPv6CIDRs[0].String(),
+		"Network configuration (PodIPv6CIDRs) was not updated",
 	)
 	assert.Equal(
-		netCfg.IPAM.Ranges[1][0].Gateway, testNodeConfig.GatewayConfig.IPv6.String(),
-		"Network configuration (Gateway IPv6) was not updated",
+		netCfg.IPAM.Ranges[1][0].Gateway, testNodeConfig.GatewayConfig.IPv6s[0].String(),
+		"Network configuration (Gateway IPv6s) was not updated",
 	)
 }
 
@@ -349,8 +349,8 @@ func TestUpdateResultIfaceConfig(t *testing.T) {
 
 	testIps := []string{"192.168.1.100/24, , 4", "fd74:ca9b:172:18::8/64, , 6"}
 
-	require.Equal(gwIPv4, testNodeConfig.GatewayConfig.IPv4)
-	require.Equal(gwIPv6, testNodeConfig.GatewayConfig.IPv6)
+	require.Equal(gwIPv4, testNodeConfig.GatewayConfig.IPv4s[0])
+	require.Equal(gwIPv6, testNodeConfig.GatewayConfig.IPv6s[0])
 
 	t.Run("Gateways updated", func(t *testing.T) {
 		assert := assert.New(t)
@@ -617,6 +617,6 @@ func init() {
 	_, nodePodCIDRv4, _ := net.ParseCIDR("192.168.1.0/24")
 	_, nodePodCIDRv6, _ := net.ParseCIDR("fd74:ca9b:172:18::/64")
 	gwMAC, _ := net.ParseMAC("00:00:00:00:00:01")
-	gateway := &config.GatewayConfig{Name: "", IPv4: gwIPv4, IPv6: gwIPv6, MAC: gwMAC}
-	testNodeConfig = &config.NodeConfig{Name: nodeName, PodIPv4CIDR: nodePodCIDRv4, PodIPv6CIDR: nodePodCIDRv6, GatewayConfig: gateway}
+	gateway := &config.GatewayConfig{Name: "", IPv4s: []net.IP{gwIPv4}, IPv6s: []net.IP{gwIPv6}, MAC: gwMAC}
+	testNodeConfig = &config.NodeConfig{Name: nodeName, PodIPv4CIDRs: []net.IPNet{*nodePodCIDRv4}, PodIPv6CIDRs: []net.IPNet{*nodePodCIDRv6}, GatewayConfig: gateway}
 }

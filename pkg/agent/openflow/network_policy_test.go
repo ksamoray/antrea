@@ -145,7 +145,7 @@ func TestInstallPolicyRuleFlows(t *testing.T) {
 	defer ctrl.Finish()
 
 	c = prepareClient(ctrl)
-	c.nodeConfig = &config.NodeConfig{PodIPv4CIDR: podIPv4CIDR, PodIPv6CIDR: nil}
+	c.nodeConfig = &config.NodeConfig{PodIPv4CIDRs: []net.IPNet{*podIPv4CIDR}, PodIPv6CIDRs: nil}
 	c.ipProtocols = []binding.Protocol{binding.ProtocolIP}
 	defaultAction := secv1alpha1.RuleActionAllow
 	ruleID1 := uint32(101)
@@ -286,7 +286,7 @@ func TestBatchInstallPolicyRuleFlows(t *testing.T) {
 	defer ctrl.Finish()
 
 	c = prepareClient(ctrl)
-	c.nodeConfig = &config.NodeConfig{PodIPv4CIDR: podIPv4CIDR, PodIPv6CIDR: nil}
+	c.nodeConfig = &config.NodeConfig{PodIPv4CIDRs: []net.IPNet{*podIPv4CIDR}, PodIPv6CIDRs: nil}
 	c.ipProtocols = []binding.Protocol{binding.ProtocolIP}
 	defaultAction := secv1alpha1.RuleActionAllow
 	priorityRule2 := uint16(10000)
@@ -415,7 +415,7 @@ func TestInstallPolicyRuleFlowsInDualStackCluster(t *testing.T) {
 	defer ctrl.Finish()
 
 	c = prepareClient(ctrl)
-	c.nodeConfig = &config.NodeConfig{PodIPv4CIDR: podIPv4CIDR, PodIPv6CIDR: podIPv6CIDR}
+	c.nodeConfig = &config.NodeConfig{PodIPv4CIDRs: []net.IPNet{*podIPv4CIDR}, PodIPv6CIDRs: []net.IPNet{*podIPv6CIDR}}
 	c.ipProtocols = []binding.Protocol{binding.ProtocolIP, binding.ProtocolIPv6}
 	defaultAction := secv1alpha1.RuleActionAllow
 	ruleID1 := uint32(101)

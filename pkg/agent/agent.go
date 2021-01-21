@@ -528,9 +528,9 @@ func (i *Initializer) configureGatewayInterface(gatewayIface *interfacestore.Int
 	}
 
 	i.nodeConfig.GatewayConfig.LinkIndex = gwLinkIdx
-	// Allocate the gateway IP address for each Pod CIDR allocated to the Node. For each CIDR,
-	// the first address in the subnet is assigned to the host gateway interface.
-	podCIDRs := []*net.IPNet{i.nodeConfig.PodIPv4CIDR, i.nodeConfig.PodIPv6CIDR}
+	// Allocate the gateway IP address from the Pod CIDRs if it exists. The gateway IP should be the first address
+	// in the Subnet and configure on the host gateway.
+	podCIDRs := append(i.nodeConfig.PodIPv4CIDRs, i.nodeConfig.PodIPv6CIDRs...)
 	if err := i.allocateGatewayAddresses(podCIDRs, gatewayIface); err != nil {
 		return err
 	}
@@ -661,21 +661,14 @@ func (i *Initializer) initNodeLocalConfig() error {
 				klog.Errorf("Failed to parse subnet from CIDR string %s: %v", node.Spec.PodCIDR, err)
 				return err
 			}
+			cidr := config.SubnetConfig{CIDR: localSubnet}
 			if localSubnet.IP.To4() != nil {
-				if i.nodeConfig.PodIPv4CIDR != nil {
-					klog.Warningf("One IPv4 PodCIDR is already configured on this Node, ignore the IPv4 Subnet CIDR %s", localSubnet.String())
-				} else {
-					i.nodeConfig.PodIPv4CIDR = localSubnet
-					klog.V(2).Infof("Configure IPv4 Subnet CIDR %s on this Node", localSubnet.String())
-				}
+				i.nodeConfig.PodIPv4CIDRs = append(i.nodeConfig.PodIPv4CIDRs, &cidr)
+				klog.V(2).Infof("Configure IPv4 Subnet CIDR %s on this Node", localSubnet.String())
 				continue
 			}
-			if i.nodeConfig.PodIPv6CIDR != nil {
-				klog.Warningf("One IPv6 PodCIDR is already configured on this Node, ignore the IPv6 subnet CIDR %s", localSubnet.String())
-			} else {
-				i.nodeConfig.PodIPv6CIDR = localSubnet
-				klog.V(2).Infof("Configure IPv6 Subnet CIDR %s on this Node", localSubnet.String())
-			}
+			i.nodeConfig.PodIPv6CIDRs = append(i.nodeConfig.PodIPv6CIDRs, &cidr)
+			klog.V(2).Infof("Configure IPv6 Subnet CIDR %s on this Node", localSubnet.String())
 		}
 		return nil
 	}
@@ -690,10 +683,11 @@ func (i *Initializer) initNodeLocalConfig() error {
 		klog.Errorf("Failed to parse subnet from CIDR string %s: %v", node.Spec.PodCIDR, err)
 		return err
 	}
+	cidr := config.SubnetConfig{CIDR: localSubnet}
 	if localSubnet.IP.To4() != nil {
-		i.nodeConfig.PodIPv4CIDR = localSubnet
+		i.nodeConfig.PodIPv4CIDRs = append(i.nodeConfig.PodIPv4CIDRs, &cidr)
 	} else {
-		i.nodeConfig.PodIPv6CIDR = localSubnet
+		i.nodeConfig.PodIPv6CIDRs = append(i.nodeConfig.PodIPv6CIDRs, &cidr)
 	}
 	return nil
 }
@@ -823,15 +817,16 @@ func (i *Initializer) getNodeMTU(localIntf *net.Interface) (int, error) {
 	return mtu, nil
 }
 
-func (i *Initializer) allocateGatewayAddresses(localSubnets []*net.IPNet, gatewayIface *interfacestore.InterfaceConfig) error {
+func (i *Initializer) allocateGatewayAddresses(localSubnets []*config.SubnetConfig, gatewayIface *interfacestore.InterfaceConfig) error {
 	var gwIPs []*net.IPNet
 	for _, localSubnet := range localSubnets {
 		if localSubnet == nil {
 			continue
 		}
-		subnetID := localSubnet.IP.Mask(localSubnet.Mask)
-		gwIP := &net.IPNet{IP: ip.NextIP(subnetID), Mask: localSubnet.Mask}
+		subnetID := localSubnet.CIDR.IP.Mask(localSubnet.CIDR.Mask)
+		gwIP := &net.IPNet{IP: ip.NextIP(subnetID), Mask: localSubnet.CIDR.Mask}
 		gwIPs = append(gwIPs, gwIP)
+		localSubnet.Gateway = &gwIP.IP
 	}
 	if len(gwIPs) == 0 {
 		return nil
@@ -847,12 +842,6 @@ func (i *Initializer) allocateGatewayAddresses(localSubnets []*net.IPNet, gatewa
 	}
 
 	for _, gwIP := range gwIPs {
-		if gwIP.IP.To4() != nil {
-			i.nodeConfig.GatewayConfig.IPv4 = gwIP.IP
-		} else {
-			i.nodeConfig.GatewayConfig.IPv6 = gwIP.IP
-		}
-
 		gatewayIface.IPs = append(gatewayIface.IPs, gwIP.IP)
 	}
 

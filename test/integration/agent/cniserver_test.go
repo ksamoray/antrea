@@ -852,9 +852,9 @@ func init() {
 	nodeName := "node1"
 	gwIP := net.ParseIP("192.168.1.1")
 	gwMAC, _ = net.ParseMAC("11:11:11:11:11:11")
-	nodeGateway := &config.GatewayConfig{IPv4: gwIP, MAC: gwMAC, Name: ""}
+	nodeGateway := &config.GatewayConfig{IPv4s: []net.IP{gwIP}, MAC: gwMAC, Name: ""}
 	_, nodePodCIDR, _ := net.ParseCIDR("192.168.1.0/24")
 	nodeMTU := 1500
 
-	testNodeConfig = &config.NodeConfig{Name: nodeName, PodIPv4CIDR: nodePodCIDR, NodeMTU: nodeMTU, GatewayConfig: nodeGateway}
+	testNodeConfig = &config.NodeConfig{Name: nodeName, PodIPv4CIDRs: []net.IPNet{*nodePodCIDR}, NodeMTU: nodeMTU, GatewayConfig: nodeGateway}
 }

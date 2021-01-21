@@ -43,6 +43,15 @@ const (
 	IPv6ExtraOverhead = 20
 )
 
+type SubnetConfig struct {
+	CIDR	*net.IPNet
+	Gateway *net.IP
+}
+
+func (s *SubnetConfig) String() string {
+	return fmt.Sprintf("CIDR %s gateway %s", s.CIDR, s.Gateway)
+}
+
 type GatewayConfig struct {
 	// Name is the name of host gateway, e.g. antrea-gw0.
 	Name string
@@ -77,12 +86,12 @@ type NodeConfig struct {
 	// The name of the default tunnel interface. Defaults to "antrea-tun0", but can
 	// be overridden by the discovered tunnel interface name from the OVS bridge.
 	DefaultTunName string
-	// The CIDR block from which to allocate IPv4 address to Pod.
+	// A list of CIDR blocks from which to allocate IPv4 address to Pod.
 	// It's nil for the net workPolicyOnly trafficEncapMode which doesn't do IPAM.
-	PodIPv4CIDR *net.IPNet
-	// The CIDR block from where to allocate IPv6 address to Pod.
+	PodIPv4CIDRs []*SubnetConfig
+	// A list of CIDR blocks from where to allocate IPv6 address to Pod.
 	// It's nil for the net workPolicyOnly trafficEncapMode which doesn't do IPAM.
-	PodIPv6CIDR *net.IPNet
+	PodIPv6CIDRs []*SubnetConfig
 	// The Node's IP used in Kubernetes. It has the network mask information.
 	NodeIPAddr *net.IPNet
 	// Set either via defaultMTU config in antrea.yaml or auto discovered.
@@ -96,8 +105,8 @@ type NodeConfig struct {
 }
 
 func (n *NodeConfig) String() string {
-	return fmt.Sprintf("NodeName: %s, OVSBridge: %s, PodIPv4CIDR: %s, PodIPv6CIDR: %s, NodeIP: %s, Gateway: %s",
-		n.Name, n.OVSBridge, n.PodIPv4CIDR, n.PodIPv6CIDR, n.NodeIPAddr, n.GatewayConfig)
+	return fmt.Sprintf("NodeName: %s, OVSBridge: %s, PodIPv4CIDR: %v, PodIPv6CIDR: %v, NodeIP: %s, Gateway: %s",
+		n.Name, n.OVSBridge, n.PodIPv4CIDRs, n.PodIPv6CIDRs, n.NodeIPAddr, n.GatewayConfig)
 }
 
 // User provided network configuration parameters.
@@ -111,13 +120,13 @@ type NetworkConfig struct {
 // IsIPv4Enabled returns true if the cluster network supports IPv4.
 // TODO: support dual-stack in networkPolicyOnly mode.
 func IsIPv4Enabled(nodeConfig *NodeConfig, trafficEncapMode TrafficEncapModeType) bool {
-	return nodeConfig.PodIPv4CIDR != nil ||
+	return len(nodeConfig.PodIPv4CIDRs) > 0 ||
 		(trafficEncapMode.IsNetworkPolicyOnly() && nodeConfig.NodeIPAddr.IP.To4() != nil)
 }
 
 // IsIPv6Enabled returns true if the cluster network supports IPv6.
 // TODO: support dual-stack in networkPolicyOnly mode.
 func IsIPv6Enabled(nodeConfig *NodeConfig, trafficEncapMode TrafficEncapModeType) bool {
-	return nodeConfig.PodIPv6CIDR != nil ||
+	return len(nodeConfig.PodIPv6CIDRs)  > 0 ||
 		(trafficEncapMode.IsNetworkPolicyOnly() && nodeConfig.NodeIPAddr.IP.To4() == nil)
 }

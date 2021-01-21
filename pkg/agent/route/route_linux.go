@@ -167,12 +167,10 @@ func (c *Client) syncIPSet() error {
 	}
 
 	// Loop all valid PodCIDR and add into the corresponding ipset.
-	for _, podCIDR := range []*net.IPNet{c.nodeConfig.PodIPv4CIDR, c.nodeConfig.PodIPv6CIDR} {
-		if podCIDR != nil {
-			ipsetName := getIPSetName(podCIDR.IP)
-			if err := ipset.AddEntry(ipsetName, podCIDR.String()); err != nil {
-				return err
-			}
+	for _, podCIDR := range append(c.nodeConfig.PodIPv4CIDRs, c.nodeConfig.PodIPv6CIDRs...) {
+		ipsetName := getIPSetName(podCIDR.CIDR.IP)
+		if err := ipset.AddEntry(ipsetName, podCIDR.CIDR.String()); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -241,19 +239,23 @@ func (c *Client) syncIPTables() error {
 
 	// Use iptables-restore to configure IPv4 settings.
 	if v4Enabled {
-		iptablesData := c.restoreIptablesData(c.nodeConfig.PodIPv4CIDR, antreaPodIPSet)
-		// Setting --noflush to keep the previous contents (i.e. non antrea managed chains) of the tables.
-		if err := c.ipt.Restore(iptablesData.Bytes(), false, false); err != nil {
-			return err
+		for _, cidr := range c.nodeConfig.PodIPv4CIDRs {
+			iptablesData := c.restoreIptablesData(cidr.CIDR, antreaPodIPSet)
+			// Setting --noflush to keep the previous contents (i.e. non antrea managed chains) of the tables.
+			if err := c.ipt.Restore(iptablesData.Bytes(), false, false); err != nil {
+				return err
+			}
 		}
 	}
 
 	// Use ip6tables-restore to configure IPv6 settings.
 	if v6Enabled {
-		iptablesData := c.restoreIptablesData(c.nodeConfig.PodIPv6CIDR, antreaPodIP6Set)
-		// Setting --noflush to keep the previous contents (i.e. non antrea managed chains) of the tables.
-		if err := c.ipt.Restore(iptablesData.Bytes(), false, true); err != nil {
-			return err
+		for _, cidr := range c.nodeConfig.PodIPv6CIDRs {
+			iptablesData := c.restoreIptablesData(cidr.CIDR, antreaPodIP6Set)
+			// Setting --noflush to keep the previous contents (i.e. non antrea managed chains) of the tables.
+			if err := c.ipt.Restore(iptablesData.Bytes(), false, true); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -400,7 +402,18 @@ func (c *Client) Reconcile(podCIDRs []string) error {
 	}
 	for i := range routes {
 		route := routes[i]
-		if reflect.DeepEqual(route.Dst, c.nodeConfig.PodIPv4CIDR) || reflect.DeepEqual(route.Dst, c.nodeConfig.PodIPv6CIDR) {
+		found := false
+		for _, cidr := range c.nodeConfig.PodIPv4CIDRs {
+			if reflect.DeepEqual(route.Dst, cidr) {
+				found = true
+			}
+		}
+		for _, cidr := range c.nodeConfig.PodIPv6CIDRs {
+			if reflect.DeepEqual(route.Dst, cidr) {
+				found = true
+			}
+		}
+		if found {
 			continue
 		}
 		if desiredPodCIDRs.Has(route.Dst.String()) {

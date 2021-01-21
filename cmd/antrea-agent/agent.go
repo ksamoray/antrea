@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/vmware-tanzu/antrea/pkg/agent/ipam"
 	"net"
 	"time"
 
@@ -202,6 +203,9 @@ func run(o *Options) error {
 		}
 	}
 
+	nodeInformer := informerFactory.Core().V1().Nodes()
+	cidrTracker := ipam.NewCIDRTracker(nodeInformer, nodeConfig)
+
 	isChaining := false
 	if networkConfig.TrafficEncapMode.IsNetworkPolicyOnly() {
 		isChaining = true
@@ -308,6 +312,8 @@ func run(o *Options) error {
 	if err != nil {
 		return fmt.Errorf("error generating Cipher Suite list: %v", err)
 	}
+	go cidrTracker.Run(stopCh)
+
 	apiServer, err := apiserver.New(
 		agentQuerier,
 		networkPolicyController,

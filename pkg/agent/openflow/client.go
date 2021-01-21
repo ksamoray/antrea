@@ -543,7 +543,15 @@ func (c *client) InstallGatewayFlows() error {
 	}
 	flows = append(flows, c.gatewayIPSpoofGuardFlows(cookie.Default)...)
 
-	// Add ARP SpoofGuard flow for local gateway interface.
+	for _, podCIDR := range append(c.nodeConfig.PodIPv4CIDRs, c.nodeConfig.PodIPv6CIDRs...) {
+		if podCIDR.CIDR.IP.To4() != nil {
+			gatewayIPs = append(gatewayIPs, *podCIDR.Gateway)
+			// Add ARP SpoofGuard flow for local gateway interface.
+			flows = append(flows, c.gatewayARPSpoofGuardFlow(*podCIDR.Gateway, gatewayConfig.MAC, cookie.Default))
+		} else {
+			gatewayIPs = append(gatewayIPs, *podCIDR.Gateway)
+		}
+	}
 	if gatewayConfig.IPv4 != nil {
 		gatewayIPs = append(gatewayIPs, gatewayConfig.IPv4)
 		flows = append(flows, c.gatewayARPSpoofGuardFlow(gatewayConfig.IPv4, gatewayConfig.MAC, cookie.Default))
@@ -580,7 +588,10 @@ func (c *client) InstallDefaultTunnelFlows() error {
 }
 
 func (c *client) InstallBridgeUplinkFlows() error {
-	flows := c.hostBridgeUplinkFlows(*c.nodeConfig.PodIPv4CIDR, cookie.Default)
+	var flows []binding.Flow
+	for _, cidr := range c.nodeConfig.PodIPv4CIDRs {
+		flows = append(flows, c.hostBridgeUplinkFlows(*cidr.CIDR, cookie.Default)...)
+	}
 	c.hostNetworkingFlows = flows
 	if err := c.ofEntryOperations.AddAll(flows); err != nil {
 		return err
@@ -655,9 +666,10 @@ func (c *client) Initialize(roundInfo types.RoundInfo, nodeConfig *config.NodeCo
 
 func (c *client) InstallExternalFlows() error {
 	nodeIP := c.nodeConfig.NodeIPAddr.IP
-	podSubnet := c.nodeConfig.PodIPv4CIDR
 	flows := c.uplinkSNATFlows(cookie.SNAT)
-	flows = append(flows, c.snatFlows(nodeIP, *podSubnet, cookie.SNAT)...)
+	for _, podSubnet := range c.nodeConfig.PodIPv4CIDRs {
+		flows = append(flows, c.snatFlows(nodeIP, *podSubnet.CIDR, cookie.SNAT)...)
+	}
 	if err := c.ofEntryOperations.AddAll(flows); err != nil {
 		return fmt.Errorf("failed to install flows for external communication: %v", err)
 	}

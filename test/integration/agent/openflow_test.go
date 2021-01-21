@@ -217,12 +217,12 @@ func TestReplayFlowsNetworkPolicyFlows(t *testing.T) {
 
 func testExternalFlows(t *testing.T, config *testConfig) {
 	nodeIP := config.nodeConfig.NodeIPAddr.IP
-	localSubnet := config.nodeConfig.PodIPv4CIDR
+	localSubnet := config.nodeConfig.PodIPv4CIDRs[0]
 
 	if err := c.InstallExternalFlows(); err != nil {
 		t.Errorf("Failed to install OpenFlow entries to allow Pod to communicate to the external addresses: %v", err)
 	}
-	for _, tableFlow := range prepareExternalFlows(nodeIP, localSubnet, config.globalMAC) {
+	for _, tableFlow := range prepareExternalFlows(nodeIP, &localSubnet, config.globalMAC) {
 		ofTestUtils.CheckFlowExists(t, ovsCtlClient, tableFlow.tableID, true, tableFlow.flows)
 	}
 }
@@ -341,7 +341,7 @@ func TestNetworkPolicyFlows(t *testing.T) {
 	err := ofTestUtils.PrepareOVSBridge(br)
 	require.Nil(t, err, fmt.Sprintf("Failed to prepare OVS bridge %s", br))
 
-	_, err = c.Initialize(roundInfo, &config1.NodeConfig{PodIPv4CIDR: podIPv4CIDR, PodIPv6CIDR: podIPv6CIDR}, config1.TrafficEncapModeEncap)
+	_, err = c.Initialize(roundInfo, &config1.NodeConfig{PodIPv4CIDRs: []net.IPNet{*podIPv4CIDR}, PodIPv6CIDRs: []net.IPNet{*podIPv6CIDR}}, config1.TrafficEncapModeEncap)
 	require.Nil(t, err, "Failed to initialize OFClient")
 
 	defer func() {
@@ -822,10 +822,10 @@ func testInstallGatewayFlows(t *testing.T, config *testConfig) {
 	}
 	var ips []net.IP
 	if config.enableIPv4 {
-		ips = append(ips, gatewayConfig.IPv4)
+		ips = append(ips, gatewayConfig.IPv4s[0])
 	}
 	if config.enableIPv6 {
-		ips = append(ips, gatewayConfig.IPv6)
+		ips = append(ips, gatewayConfig.IPv6s[0])
 	}
 	for _, tableFlow := range prepareGatewayFlows(ips, gatewayConfig.MAC, config.globalMAC) {
 		ofTestUtils.CheckFlowExists(t, ovsCtlClient, tableFlow.tableID, true, tableFlow.flows)
@@ -839,13 +839,13 @@ func prepareConfiguration() *testConfig {
 	nodeSubnet.IP = nodeIP
 
 	gatewayConfig := &config1.GatewayConfig{
-		IPv4: net.ParseIP("192.168.1.1"),
+		IPv4s: []net.IP{net.ParseIP("192.168.1.1")},
 		MAC:  gwMAC,
 	}
 	nodeConfig := &config1.NodeConfig{
 		NodeIPAddr:    nodeSubnet,
 		GatewayConfig: gatewayConfig,
-		PodIPv4CIDR:   podIPv4CIDR,
+		PodIPv4CIDRs:  []net.IPNet{*podIPv4CIDR},
 	}
 
 	podCfg := &testLocalPodConfig{
@@ -882,12 +882,12 @@ func prepareIPv6Configuration() *testConfig {
 	gwMAC, _ := net.ParseMAC("aa:aa:aa:aa:aa:11")
 
 	gatewayConfig := &config1.GatewayConfig{
-		IPv6: net.ParseIP("fd74:ca9b:172:19::1"),
+		IPv6s: []net.IP{net.ParseIP("fd74:ca9b:172:19::1")},
 		MAC:  gwMAC,
 	}
 	nodeConfig := &config1.NodeConfig{
 		GatewayConfig: gatewayConfig,
-		PodIPv6CIDR:   podIPv6CIDR,
+		PodIPv6CIDRs:   []net.IPNet{*podIPv6CIDR},
 	}
 
 	podCfg := &testLocalPodConfig{

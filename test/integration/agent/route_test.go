@@ -61,10 +61,10 @@ var (
 	gwIP              = net.ParseIP("10.10.10.1")
 	gwMAC, _          = net.ParseMAC("12:34:56:78:bb:cc")
 	gwName            = "antrea-gw0"
-	gwConfig          = &config.GatewayConfig{IPv4: gwIP, MAC: gwMAC, Name: gwName}
+	gwConfig          = &config.GatewayConfig{IPv4s: []net.IP{gwIP}, MAC: gwMAC, Name: gwName}
 	nodeConfig        = &config.NodeConfig{
 		Name:          "test",
-		PodIPv4CIDR:   podCIDR,
+		PodIPv4CIDRs:  []net.IPNet{*podCIDR},
 		NodeIPAddr:    nodeIP,
 		GatewayConfig: gwConfig,
 	}
@@ -501,11 +501,11 @@ func TestIPv6RoutesAndNeighbors(t *testing.T) {
 	assert.Nil(t, err)
 	_, ipv6Subnet, _ := net.ParseCIDR("fd74:ca9b:172:19::/64")
 	gwIPv6 := net.ParseIP("fd74:ca9b:172:19::1")
-	dualGWConfig := &config.GatewayConfig{IPv4: gwIP, IPv6: gwIPv6, MAC: gwMAC, Name: gwName, LinkIndex: gwLink.Attrs().Index}
+	dualGWConfig := &config.GatewayConfig{IPv4s: []net.IP{gwIP}, IPv6s: []net.IP{gwIPv6}, MAC: gwMAC, Name: gwName, LinkIndex: gwLink.Attrs().Index}
 	dualNodeConfig := &config.NodeConfig{
 		Name:          "test",
-		PodIPv4CIDR:   podCIDR,
-		PodIPv6CIDR:   ipv6Subnet,
+		PodIPv4CIDRs:  []net.IPNet{*podCIDR},
+		PodIPv6CIDRs:  []net.IPNet{*ipv6Subnet},
 		NodeIPAddr:    nodeIP,
 		GatewayConfig: dualGWConfig,
 	}
