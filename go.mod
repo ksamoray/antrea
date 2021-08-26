@@ -46,7 +46,7 @@ require (
 	github.com/vmware/go-ipfix v0.5.7
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6
-	golang.org/x/mod v0.4.2
+	golang.org/x/mod v0.5.0
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007
