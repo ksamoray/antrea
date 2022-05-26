@@ -49,7 +49,7 @@ require (
 	github.com/ti-mo/conntrack v0.4.0
 	github.com/vishvananda/netlink v1.1.1-0.20210510164352-d17758a128bf
 	github.com/vmware/go-ipfix v0.5.12
-	go.uber.org/multierr v1.6.0
+	go.uber.org/multierr v1.8.0
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
