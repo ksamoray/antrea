@@ -85,7 +85,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         show-progress: false
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
     - name: Download Antrea image from previous job
@@ -148,7 +148,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         show-progress: false
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
     - name: Download Antrea image from previous job
@@ -218,7 +218,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           show-progress: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
       - name: Download Antrea image from previous job
@@ -290,7 +290,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         show-progress: false
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
     - name: Download Antrea image from previous job
@@ -353,7 +353,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         show-progress: false
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
     - name: Download Antrea image from previous job
@@ -421,7 +421,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           show-progress: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
       - name: Download Antrea image from previous job
@@ -491,7 +491,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         show-progress: false
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
     - name: Download Antrea image from previous job
@@ -537,7 +537,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         show-progress: false
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
     - name: Download Antrea image from previous job
@@ -583,7 +583,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           show-progress: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
       - name: Download Antrea image from previous job
@@ -629,7 +629,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           show-progress: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
       - name: Download Antrea image from previous job
@@ -675,7 +675,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           show-progress: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
       - name: Download Antrea image from previous job
@@ -721,7 +721,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           show-progress: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
       - name: Download Antrea image from previous job
@@ -766,7 +766,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           show-progress: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
       - name: Download Antrea image from previous job
